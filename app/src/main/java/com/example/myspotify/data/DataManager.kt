@@ -16,6 +16,7 @@ class DataManager(private val context: Context) {
     private var artists: List<Artist>? = null
     private var albums: List<Album>? = null
     private var playlists: List<Playlist>? = null
+    private var userData: UserData? = null
 
     /**
      * 从 assets 加载 JSON 文件
@@ -80,5 +81,23 @@ class DataManager(private val context: Context) {
      */
     fun getArtistById(id: String): Artist? {
         return getArtists().find { it.id == id }
+    }
+
+    /**
+     * 获取用户数据
+     */
+    fun getUserData(): UserData {
+        if (userData == null) {
+            val json = loadJsonFromAssets("user_data.json")
+            userData = gson.fromJson(json, UserData::class.java)
+        }
+        return userData ?: UserData()
+    }
+
+    /**
+     * 根据 ID 获取歌单
+     */
+    fun getPlaylistById(id: String): Playlist? {
+        return getPlaylists().find { it.id == id }
     }
 }

@@ -11,12 +11,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.myspotify.data.AssetMapper
 import com.example.myspotify.data.DataManager
+import com.example.myspotify.model.Album
+import com.example.myspotify.model.Playlist
+import com.example.myspotify.model.Song
+import com.example.myspotify.ui.common.AssetImage
+import com.example.myspotify.ui.common.MusicMenuView
+import com.example.myspotify.ui.common.PlaylistMenuView
+import com.example.myspotify.ui.home.PlayingTabView
 import com.example.myspotify.ui.home.HomeTabView
+import com.example.myspotify.ui.library.PlaylistDetailTabView
 import com.example.myspotify.ui.library.YourLibraryTabView
 import com.example.myspotify.ui.premium.PremiumTabView
 import com.example.myspotify.ui.search.SearchTabView
@@ -36,14 +47,171 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(dataManager: DataManager) {
     var selectedTab by remember { mutableStateOf(0) }
+    var showPlayingTab by remember { mutableStateOf(false) }
+    var selectedSong by remember { mutableStateOf<Song?>(null) }
+    var showPlaylistDetail by remember { mutableStateOf(false) }
+    var selectedPlaylist by remember { mutableStateOf<Playlist?>(null) }
+    var showAlbumDetail by remember { mutableStateOf(false) }
+    var selectedAlbum by remember { mutableStateOf<Album?>(null) }
+    var showPlaylistMenu by remember { mutableStateOf(false) }
+    var menuPlaylist by remember { mutableStateOf<Playlist?>(null) }
+    var showMusicMenu by remember { mutableStateOf(false) }
+    var menuSong by remember { mutableStateOf<Song?>(null) }
+    val userPlaylists = remember { mutableStateListOf<Playlist>() }
+
     val songs = remember { dataManager.getSongs() }
     val artists = remember { dataManager.getArtists() }
     val albums = remember { dataManager.getAlbums() }
+    val playlists = remember { dataManager.getPlaylists() }
+    val recentlyPlayedSongs = remember {
+        dataManager.getUserData().recentlyPlayed.mapNotNull { dataManager.getSongById(it) }
+    }
+    val followedArtists = remember {
+        dataManager.getUserData().followedArtists.mapNotNull { dataManager.getArtistById(it) }
+    }
+    val likedSongIds = remember {
+        mutableStateListOf<String>().apply { addAll(dataManager.getUserData().likedSongs) }
+    }
+    val likedSongs by remember {
+        derivedStateOf { likedSongIds.mapNotNull { dataManager.getSongById(it) } }
+    }
+
+    // 收藏/取消收藏歌曲
+    val onToggleLike: (Song) -> Unit = { song ->
+        if (likedSongIds.contains(song.id)) {
+            likedSongIds.remove(song.id)
+        } else {
+            likedSongIds.add(song.id)
+        }
+    }
+
+    // 通用的歌曲点击处理
+    val onSongClick: (Song) -> Unit = { song ->
+        selectedSong = song
+        showPlayingTab = true
+    }
+
+    // 歌单点击处理
+    val onPlaylistClick: (Playlist) -> Unit = { playlist ->
+        selectedPlaylist = playlist
+        showPlaylistDetail = true
+    }
+
+    // 专辑点击处理（复用歌单详情页的布局）
+    val onAlbumClick: (Album) -> Unit = { album ->
+        selectedAlbum = album
+        showAlbumDetail = true
+    }
+
+    // 歌单菜单点击处理
+    val onPlaylistMenuClick: (Playlist) -> Unit = { playlist ->
+        menuPlaylist = playlist
+        showPlaylistMenu = true
+    }
+
+    // 歌曲菜单点击处理
+    val onSongMenuClick: (Song) -> Unit = { song ->
+        menuSong = song
+        showMusicMenu = true
+    }
+
+    // 显示歌单菜单
+    if (showPlaylistMenu && menuPlaylist != null) {
+        PlaylistMenuView(
+            playlist = menuPlaylist!!,
+            onBack = { showPlaylistMenu = false; menuPlaylist = null }
+        )
+        return
+    }
+
+    // 显示歌曲菜单
+    if (showMusicMenu && menuSong != null) {
+        MusicMenuView(
+            song = menuSong!!,
+            onBack = { showMusicMenu = false; menuSong = null }
+        )
+        return
+    }
+
+    // 显示全屏播放页面
+    if (showPlayingTab) {
+        PlayingTabView(
+            song = selectedSong,
+            onBack = { showPlayingTab = false },
+            isLiked = selectedSong?.let { likedSongIds.contains(it.id) } ?: false,
+            onLikeToggle = { selectedSong?.let { onToggleLike(it) } },
+            userPlaylists = userPlaylists,
+            likedSongsCount = likedSongIds.size,
+            onAddSongToPlaylist = { s, playlist ->
+                val index = userPlaylists.indexOfFirst { it.id == playlist.id }
+                if (index >= 0 && !playlist.songIds.contains(s.id)) {
+                    userPlaylists[index] = playlist.copy(songIds = playlist.songIds + s.id)
+                }
+            },
+            onAddSongToLikedSongs = { s ->
+                if (!likedSongIds.contains(s.id)) {
+                    likedSongIds.add(s.id)
+                }
+            }
+        )
+        return
+    }
+
+    // 显示歌单详情页
+    if (showPlaylistDetail && selectedPlaylist != null) {
+        val playlist = selectedPlaylist!!
+        val playlistSongs = remember(playlist.id) {
+            playlist.songIds.mapNotNull { dataManager.getSongById(it) }
+        }
+        PlaylistDetailTabView(
+            playlist = playlist,
+            playlistSongs = playlistSongs,
+            onBack = { showPlaylistDetail = false; selectedPlaylist = null },
+            onSongClick = onSongClick,
+            onPlaylistMenuClick = { onPlaylistMenuClick(playlist) },
+            onSongMenuClick = onSongMenuClick,
+            likedSongIds = likedSongIds,
+            onToggleLike = onToggleLike
+        )
+        return
+    }
+
+    // 显示专辑详情页（复用歌单详情页）
+    if (showAlbumDetail && selectedAlbum != null) {
+        val album = selectedAlbum!!
+        val albumPlaylist = Playlist(
+            id = album.id,
+            name = album.name,
+            coverUrl = album.coverUrl,
+            creator = album.artistName,
+            description = "${album.releaseYear}",
+            songIds = album.songIds
+        )
+        val albumSongs = remember(album.id) {
+            album.songIds.mapNotNull { dataManager.getSongById(it) }
+        }
+        PlaylistDetailTabView(
+            playlist = albumPlaylist,
+            playlistSongs = albumSongs,
+            onBack = { showAlbumDetail = false; selectedAlbum = null },
+            onSongClick = onSongClick,
+            onPlaylistMenuClick = { onPlaylistMenuClick(albumPlaylist) },
+            onSongMenuClick = onSongMenuClick,
+            likedSongIds = likedSongIds,
+            onToggleLike = onToggleLike
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {
             Column {
-                MiniPlayer()
+                MiniPlayer(
+                    song = selectedSong,
+                    isLiked = selectedSong?.let { likedSongIds.contains(it.id) } ?: false,
+                    onLikeToggle = { selectedSong?.let { onToggleLike(it) } },
+                    onClick = { showPlayingTab = true }
+                )
                 BottomNavigationBar(
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it }
@@ -54,9 +222,39 @@ fun MainScreen(dataManager: DataManager) {
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
-                0 -> HomeTabView(songs = songs, albums = albums)
-                1 -> SearchTabView()
-                2 -> YourLibraryTabView(artists = artists)
+                0 -> HomeTabView(
+                    songs = songs,
+                    albums = albums,
+                    playlists = playlists,
+                    artists = artists,
+                    recentlyPlayedSongs = recentlyPlayedSongs,
+                    onSongClick = onSongClick,
+                    onPlaylistClick = onPlaylistClick,
+                    onAlbumClick = onAlbumClick,
+                    onSongMenuClick = onSongMenuClick,
+                    likedSongIds = likedSongIds,
+                    onToggleLike = onToggleLike
+                )
+                1 -> SearchTabView(
+                    songs = songs,
+                    artists = artists,
+                    albums = albums,
+                    playlists = playlists,
+                    recentlyPlayedSongs = recentlyPlayedSongs,
+                    followedArtists = followedArtists
+                )
+                2 -> YourLibraryTabView(
+                    artists = artists,
+                    songs = songs,
+                    albums = albums,
+                    likedSongs = likedSongs,
+                    followedArtists = followedArtists,
+                    onSongClick = onSongClick,
+                    onSongMenuClick = onSongMenuClick,
+                    likedSongIds = likedSongIds,
+                    onToggleLike = onToggleLike,
+                    userPlaylists = userPlaylists
+                )
                 3 -> PremiumTabView()
             }
         }
@@ -125,12 +323,22 @@ fun BottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 }
 
 @Composable
-fun MiniPlayer() {
+fun MiniPlayer(
+    song: Song? = null,
+    isLiked: Boolean = false,
+    onLikeToggle: () -> Unit = {},
+    onClick: () -> Unit = {}
+) {
+    val coverPath = if (song != null) AssetMapper.songCover(song) else "cover/13.png"
+    val title = song?.title ?: "IRIS OUT"
+    val artist = song?.artistName ?: "Kenshi Yonezu"
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp),
-        color = Color(0xFF8B0000)
+        color = Color(0xFF8B0000),
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
@@ -138,23 +346,25 @@ fun MiniPlayer() {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+            AssetImage(
+                assetPath = coverPath,
+                contentDescription = "Now Playing Cover",
                 modifier = Modifier
                     .size(48.dp)
-                    .background(Color(0xFF5C0000))
+                    .clip(RoundedCornerShape(4.dp))
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "IRIS OUT",
+                    text = title,
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "Kenshi Yonezu",
+                    text = artist,
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
@@ -171,11 +381,11 @@ fun MiniPlayer() {
                         tint = Color.White
                     )
                 }
-                IconButton(onClick = {}) {
+                IconButton(onClick = onLikeToggle) {
                     Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Like",
-                        tint = Color(0xFF1DB954)
+                        imageVector = if (isLiked) Icons.Default.Check else Icons.Default.Add,
+                        contentDescription = if (isLiked) "Unlike" else "Like",
+                        tint = if (isLiked) Color(0xFF1DB954) else Color.White
                     )
                 }
                 IconButton(onClick = {}) {

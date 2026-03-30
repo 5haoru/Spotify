@@ -1,16 +1,13 @@
 package com.example.myspotify.ui.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,13 +18,102 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myspotify.data.AssetMapper
+import com.example.myspotify.model.Album
+import com.example.myspotify.model.Artist
+import com.example.myspotify.model.Playlist
+import com.example.myspotify.model.Song
+import com.example.myspotify.ui.common.AssetImage
 
 /**
  * SearchTab View - 搜索页面视图
  */
 @Composable
-fun SearchTabView() {
-    var searchText by remember { mutableStateOf("") }
+fun SearchTabView(
+    songs: List<Song>,
+    artists: List<Artist>,
+    albums: List<Album>,
+    playlists: List<Playlist>,
+    recentlyPlayedSongs: List<Song>,
+    followedArtists: List<Artist>
+) {
+    // 导航状态
+    var showSearchForSomething by remember { mutableStateOf(false) }
+    var showCategoryDetail by remember { mutableStateOf(false) }
+    var selectedCategoryTitle by remember { mutableStateOf("") }
+    var selectedCategorySource by remember { mutableStateOf("") }
+    var showCodeTab by remember { mutableStateOf(false) }
+
+    // 构建最近搜索数据
+    val recentSearchItems = remember {
+        val items = mutableListOf<RecentSearchItem>()
+        recentlyPlayedSongs.forEach { song ->
+            items.add(
+                RecentSearchItem(
+                    name = song.title,
+                    type = "Song",
+                    assetPath = AssetMapper.songCover(song),
+                    id = song.id
+                )
+            )
+        }
+        followedArtists.forEach { artist ->
+            items.add(
+                RecentSearchItem(
+                    name = artist.name,
+                    type = "Artist",
+                    assetPath = AssetMapper.artistAvatar(artist.id),
+                    id = artist.id
+                )
+            )
+        }
+        items
+    }
+
+    // 子页面导航
+    if (showSearchForSomething) {
+        SearchForSomethingTabView(
+            recentSearchItems = recentSearchItems,
+            onBack = { showSearchForSomething = false }
+        )
+        return
+    }
+    if (showCategoryDetail) {
+        CategoryDetailTabView(
+            categoryTitle = selectedCategoryTitle,
+            items = getCategoryItems(
+                selectedCategoryTitle, selectedCategorySource,
+                albums, playlists, songs, artists
+            ),
+            onBack = { showCategoryDetail = false }
+        )
+        return
+    }
+    if (showCodeTab) {
+        CodeTabView(onBack = { showCodeTab = false })
+        return
+    }
+
+    // 分类数据
+    val startBrowsingCategories = listOf(
+        "Music" to Color(0xFFE91E63),
+        "Podcasts" to Color(0xFF009688),
+        "Audiobooks" to Color(0xFF3F51B5),
+        "Live Events" to Color(0xFF9C27B0)
+    )
+
+    val browseAllCategories = listOf(
+        "Made For You" to Color(0xFF1565C0),
+        "New Releases" to Color(0xFFE65100),
+        "Pop" to Color(0xFF1976D2),
+        "Indie" to Color(0xFF4E342E),
+        "K-Pop" to Color(0xFF7B1FA2),
+        "Charts" to Color(0xFF2E7D32),
+        "R&B" to Color(0xFF283593),
+        "Hip Hop" to Color(0xFFD84315),
+        "Rock" to Color(0xFF00838F),
+        "Latin" to Color(0xFFFF6F00)
+    )
 
     Column(
         modifier = Modifier
@@ -43,14 +129,12 @@ fun SearchTabView() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
+                AssetImage(
+                    assetPath = AssetMapper.userAvatar,
                     contentDescription = "User Avatar",
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFF5722)),
-                    tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
@@ -61,45 +145,44 @@ fun SearchTabView() {
                 )
             }
 
-            IconButton(onClick = {}) {
+            IconButton(onClick = { showCodeTab = true }) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
+                    imageVector = Icons.Default.PhotoCamera,
                     contentDescription = "Camera",
                     tint = Color.White
                 )
             }
         }
 
-        // 搜索框
-        OutlinedTextField(
-            value = searchText,
-            onValueChange = { searchText = it },
+        // 搜索框（点击后进入搜索页面）
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            placeholder = {
-                Text("What do you want to listen to?", color = Color.Gray)
-            },
-            leadingIcon = {
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White)
+                .clickable { showSearchForSomething = true }
+                .padding(horizontal = 12.dp, vertical = 14.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",
                     tint = Color.Gray
                 )
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
-            ),
-            shape = RoundedCornerShape(8.dp)
-        )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "What do you want to listen to?",
+                    color = Color.Gray,
+                    fontSize = 16.sp
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         LazyColumn {
-            // "Start browsing" 标题
+            // ===== 第一板块: Start browsing =====
             item {
                 Text(
                     text = "Start browsing",
@@ -111,35 +194,39 @@ fun SearchTabView() {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // 分类网格
-            item {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+            val startPairs = startBrowsingCategories.chunked(2)
+            items(startPairs.size) { index ->
+                val pair = startPairs[index]
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(
-                        listOf(
-                            "Music" to Color(0xFFE91E63),
-                            "Podcasts" to Color(0xFF009688),
-                            "Audiobooks" to Color(0xFF3F51B5),
-                            "Live Events" to Color(0xFF9C27B0)
+                    pair.forEach { (title, color) ->
+                        CategoryCard(
+                            title = title,
+                            backgroundColor = color,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                selectedCategoryTitle = title
+                                selectedCategorySource = "start_browsing"
+                                showCategoryDetail = true
+                            }
                         )
-                    ) { (title, color) ->
-                        CategoryCard(title = title, backgroundColor = color)
+                    }
+                    if (pair.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
 
-            // "Discover something new" 标题
+            // ===== 第三板块: Browse all =====
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Discover something new",
+                    text = "Browse all",
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -148,22 +235,31 @@ fun SearchTabView() {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // 发现卡片
-            item {
+            val browsePairs = browseAllCategories.chunked(2)
+            items(browsePairs.size) { index ->
+                val pair = browsePairs[index]
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    DiscoverCard(
-                        title = "Music for you",
-                        modifier = Modifier.weight(1f)
-                    )
-                    DiscoverCard(
-                        title = "#japanese pop rock",
-                        modifier = Modifier.weight(1f)
-                    )
+                    pair.forEach { (title, color) ->
+                        CategoryCard(
+                            title = title,
+                            backgroundColor = color,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                selectedCategoryTitle = title
+                                selectedCategorySource = "browse_all"
+                                showCategoryDetail = true
+                            }
+                        )
+                    }
+                    if (pair.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
 
@@ -179,13 +275,18 @@ fun SearchTabView() {
  * 分类卡片组件
  */
 @Composable
-fun CategoryCard(title: String, backgroundColor: Color) {
+fun CategoryCard(
+    title: String,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .height(100.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(backgroundColor),
+            .background(backgroundColor)
+            .clickable { onClick() },
         contentAlignment = Alignment.CenterStart
     ) {
         Text(
@@ -198,24 +299,3 @@ fun CategoryCard(title: String, backgroundColor: Color) {
     }
 }
 
-/**
- * 发现卡片组件
- */
-@Composable
-fun DiscoverCard(title: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .height(120.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFF282828)),
-        contentAlignment = Alignment.BottomStart
-    ) {
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(12.dp)
-        )
-    }
-}
