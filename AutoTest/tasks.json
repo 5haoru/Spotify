@@ -1,0 +1,286 @@
+{
+  "app_package": "com.example.myspotify",
+  "app_activity": "com.example.myspotify.MainActivity",
+  "tasks": [
+    {
+      "task_id": "task_001",
+      "category": "Navigation",
+      "instruction": "切换到搜索(Search)标签页",
+      "description": "点击底部导航栏的Search图标，切换到搜索页面",
+      "check_method": "check_search_tab_active"
+    },
+    {
+      "task_id": "task_002",
+      "category": "Navigation",
+      "instruction": "切换到你的音乐库(Your Library)标签页",
+      "description": "点击底部导航栏的Your Library图标，切换到音乐库页面",
+      "check_method": "check_library_tab_active"
+    },
+    {
+      "task_id": "task_003",
+      "category": "Navigation",
+      "instruction": "切换到Premium标签页",
+      "description": "点击底部导航栏的Premium图标，切换到Premium页面",
+      "check_method": "check_premium_tab_active"
+    },
+    {
+      "task_id": "task_004",
+      "category": "Navigation",
+      "instruction": "从Premium标签页返回Home标签页",
+      "description": "先确保在Premium页面，然后点击底部导航栏的Home图标返回首页",
+      "check_method": "check_home_tab_active"
+    },
+    {
+      "task_id": "task_005",
+      "category": "Home",
+      "instruction": "在首页点击Music分类筛选",
+      "description": "在首页顶部的分类筛选条中，点击Music选项",
+      "check_method": "check_music_category_selected"
+    },
+    {
+      "task_id": "task_006",
+      "category": "Home",
+      "instruction": "在首页点击Podcasts分类，然后点击第一个播客卡片查看详情",
+      "description": "在首页选择Podcasts分类，点击'How AI is Changing Music'播客卡片进入详情页",
+      "check_method": "check_podcast_detail_view"
+    },
+    {
+      "task_id": "task_007",
+      "category": "Home",
+      "instruction": "在首页点击Audiobooks分类，然后点击第一个有声书查看详情",
+      "description": "在首页选择Audiobooks分类，点击'The Art of Reading'有声书进入详情页",
+      "check_method": "check_audiobook_detail_view"
+    },
+    {
+      "task_id": "task_008",
+      "category": "Home",
+      "instruction": "打开首页左上角的用户菜单",
+      "description": "点击首页左上角的用户头像，打开用户菜单页面",
+      "check_method": "check_user_tab_open"
+    },
+    {
+      "task_id": "task_009",
+      "category": "Playback",
+      "instruction": "点击迷你播放器进入全屏播放页面",
+      "description": "点击底部迷你播放器区域，展开进入全屏播放视图",
+      "check_method": "check_playing_view_open"
+    },
+    {
+      "task_id": "task_010",
+      "category": "Playback",
+      "instruction": "在全屏播放页面点击播放/暂停按钮",
+      "description": "进入全屏播放视图后，点击播放/暂停按钮来切换播放状态",
+      "check_method": "check_play_pause_toggled"
+    },
+    {
+      "task_id": "task_011",
+      "category": "Playback",
+      "instruction": "在全屏播放页面点击下一首按钮",
+      "description": "进入全屏播放视图后，点击Skip Next按钮切换到下一首歌",
+      "check_method": "check_next_song"
+    },
+    {
+      "task_id": "task_012",
+      "category": "Playback",
+      "instruction": "在全屏播放页面开启随机播放(Shuffle)",
+      "description": "进入全屏播放视图后，点击Shuffle按钮开启随机播放模式",
+      "check_method": "check_shuffle_enabled"
+    },
+    {
+      "task_id": "task_013",
+      "category": "Playback",
+      "instruction": "在全屏播放页面切换到单曲循环(Repeat One)模式",
+      "description": "进入全屏播放视图后，点击Repeat按钮两次，切换到Repeat One模式",
+      "check_method": "check_repeat_one_mode"
+    },
+    {
+      "task_id": "task_014",
+      "category": "Like",
+      "instruction": "在迷你播放器中将当前歌曲标记为喜欢",
+      "description": "找到底部迷你播放器的爱心按钮，点击将当前歌曲标记为已喜欢",
+      "check_method": "check_song_liked_mini_player"
+    },
+    {
+      "task_id": "task_015",
+      "category": "Like",
+      "instruction": "在全屏播放页面取消当前歌曲的喜欢状态",
+      "description": "进入全屏播放页面，点击已喜欢的心形图标取消喜欢",
+      "check_method": "check_song_unliked_playing"
+    },
+    {
+      "task_id": "task_016",
+      "category": "Playback",
+      "instruction": "在全屏播放页面打开更多菜单并设置睡眠定时器为15分钟",
+      "description": "进入播放页面，点击右上角更多按钮，选择Sleep timer，然后选择15 minutes",
+      "check_method": "check_sleep_timer_set"
+    },
+    {
+      "task_id": "task_017",
+      "category": "Playback",
+      "instruction": "在全屏播放页面查看歌词",
+      "description": "进入全屏播放页面，向下滑动找到歌词区域，点击'Show more'查看完整歌词",
+      "check_method": "check_lyrics_view_open"
+    },
+    {
+      "task_id": "task_018",
+      "category": "Playback",
+      "instruction": "在全屏播放页面查看歌曲制作信息(Credits)",
+      "description": "进入全屏播放页面，向下滑动找到Credits区域，点击'Show all credits'查看完整制作信息",
+      "check_method": "check_credits_view_open"
+    },
+    {
+      "task_id": "task_019",
+      "category": "Playback",
+      "instruction": "在全屏播放页面查看关于艺人的详细信息",
+      "description": "进入全屏播放页面，向下滑动找到About the artist区域，点击'Show more'查看艺人详情",
+      "check_method": "check_about_artist_view_open"
+    },
+    {
+      "task_id": "task_020",
+      "category": "Search",
+      "instruction": "在搜索页面点击搜索框，然后输入'Shape'进行搜索",
+      "description": "切换到Search标签页，点击搜索框进入搜索输入页面，在输入框中输入'Shape'",
+      "check_method": "check_search_input_text"
+    },
+    {
+      "task_id": "task_021",
+      "category": "Search",
+      "instruction": "在搜索页面打开'Music'分类查看内容",
+      "description": "切换到Search标签页，在Start browsing区域点击Music分类卡片",
+      "check_method": "check_category_detail_music"
+    },
+    {
+      "task_id": "task_022",
+      "category": "Search",
+      "instruction": "在搜索页面点击相机图标打开扫码页面",
+      "description": "切换���Search标签页，点击右上角的相机图标打开Scan Spotify Code页面",
+      "check_method": "check_code_tab_open"
+    },
+    {
+      "task_id": "task_023",
+      "category": "Search",
+      "instruction": "在搜索输入页面删除一条最近搜索记录",
+      "description": "切换到Search标签页，点击搜索框进入搜索输入页面，点击某条最近搜索记录右侧的X按钮删除它",
+      "check_method": "check_recent_search_removed"
+    },
+    {
+      "task_id": "task_024",
+      "category": "Library",
+      "instruction": "在音乐库中创建一个名为'My Rock'的新播放列表",
+      "description": "切换到Your Library标签页，点击+按钮，选择Playlist，输入名称'My Rock'，点击Create",
+      "check_method": "check_playlist_created"
+    },
+    {
+      "task_id": "task_025",
+      "category": "Library",
+      "instruction": "打开Liked Songs页面",
+      "description": "切换到Your Library标签页，点击Liked Songs行进入已喜欢歌曲页面",
+      "check_method": "check_liked_songs_view_open"
+    },
+    {
+      "task_id": "task_026",
+      "category": "Library",
+      "instruction": "在音乐库中打开Taylor Swift的艺人页面",
+      "description": "切换到Your Library标签页，在艺人列表中找到并点击Taylor Swift",
+      "check_method": "check_artist_view_open"
+    },
+    {
+      "task_id": "task_027",
+      "category": "Library",
+      "instruction": "进入添加艺人页面并关注(Follow)一个新的艺人",
+      "description": "切换到Your Library标签页，点击'Add artists'，在艺人列表中点击某个艺人的Follow按钮",
+      "check_method": "check_artist_followed"
+    },
+    {
+      "task_id": "task_028",
+      "category": "Library",
+      "instruction": "进入添加播客页面并关注一个播客",
+      "description": "切换到Your Library标签页，点击'Add podcasts'，在播客列表中点击某个播客的Follow按钮",
+      "check_method": "check_podcast_followed"
+    },
+    {
+      "task_id": "task_029",
+      "category": "Library",
+      "instruction": "进入添加活动与场馆页面并关注一个场馆",
+      "description": "切换到Your Library标签页，点击'Add events and venues'，在场馆列表中点击某个场馆的Follow按钮",
+      "check_method": "check_venue_followed"
+    },
+    {
+      "task_id": "task_030",
+      "category": "Library",
+      "instruction": "打开导入音乐(Import your music)页面",
+      "description": "切换到Your Library标签页，点击'Import your music'进入导入音乐页面",
+      "check_method": "check_import_view_open"
+    },
+    {
+      "task_id": "task_031",
+      "category": "Library",
+      "instruction": "在音乐库中使用搜索功能",
+      "description": "切换到Your Library标签页，点击搜索图标进入搜索音乐库页面",
+      "check_method": "check_library_search_open"
+    },
+    {
+      "task_id": "task_032",
+      "category": "Playlist",
+      "instruction": "打开Today's Top Hits播放列表并向其中添加一首歌",
+      "description": "在首页或音乐库找到Today's Top Hits播放列表，进入后点击'Add to this playlist'，搜索或选择一首歌添加",
+      "check_method": "check_song_added_to_playlist"
+    },
+    {
+      "task_id": "task_033",
+      "category": "Playlist",
+      "instruction": "在全屏播放页面通过菜单将当前歌曲添加到Liked Songs",
+      "description": "进入全屏播放页面，点击更多按���，选择'Add to playlist'，选择Liked Songs，点击Done",
+      "check_method": "check_song_added_to_liked"
+    },
+    {
+      "task_id": "task_034",
+      "category": "Premium",
+      "instruction": "在Premium页面点击试用按钮进入结账页面",
+      "description": "切换到Premium标签页，点击'Try 3 months for $0'按钮进入Checkout页面",
+      "check_method": "check_checkout_view_open"
+    },
+    {
+      "task_id": "task_035",
+      "category": "Podcast",
+      "instruction": "在播客详情页面发表一条评论'Great episode!'",
+      "description": "从首页Podcasts分类进入某个播客详情，在底部评论输入框输入'Great episode!'并点击发送",
+      "check_method": "check_comment_posted"
+    },
+    {
+      "task_id": "task_036",
+      "category": "Playback",
+      "instruction": "在首页点击歌曲'Shake It Off'的喜欢按钮",
+      "description": "在首页歌曲列表中找到'Shake It Off'，点击其右侧的爱心图标",
+      "check_method": "check_home_song_liked"
+    },
+    {
+      "task_id": "task_037",
+      "category": "Navigation",
+      "instruction": "在全屏播放页面点��左上角返回按钮回到主页面",
+      "description": "先进入全屏播放页面，然后点击左上角的向下箭头按钮返回",
+      "check_method": "check_playing_view_closed"
+    },
+    {
+      "task_id": "task_038",
+      "category": "Playback",
+      "instruction": "在有声书详情页面点击播放按钮",
+      "description": "从首页Audiobooks分类进入某个有声书详情页面，点击播放按钮",
+      "check_method": "check_audiobook_playing"
+    },
+    {
+      "task_id": "task_039",
+      "category": "Playback",
+      "instruction": "在播客详情页面点击快进15秒按钮",
+      "description": "从首页Podcasts分类进入某个播客详情页面，点击快进15秒按钮",
+      "check_method": "check_podcast_forward"
+    },
+    {
+      "task_id": "task_040",
+      "category": "Playback",
+      "instruction": "在全屏播放页面通过菜单设置睡眠定时器为30分钟，然后再打开菜单关闭睡眠定时器",
+      "description": "进入播放页面，打开菜单设置30分钟的睡眠定时器，然后再次打开菜单进入睡眠定时器关闭它",
+      "check_method": "check_sleep_timer_off"
+    }
+  ]
+}
