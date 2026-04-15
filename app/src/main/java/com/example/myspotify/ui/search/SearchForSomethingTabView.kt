@@ -17,8 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myspotify.data.AssetMapper
+import com.example.myspotify.model.Song
 import com.example.myspotify.ui.common.AssetImage
 
 /**
@@ -37,10 +40,18 @@ data class RecentSearchItem(
 @Composable
 fun SearchForSomethingTabView(
     recentSearchItems: List<RecentSearchItem>,
-    onBack: () -> Unit
+    allSongs: List<Song> = emptyList(),
+    onBack: () -> Unit,
+    onSongClick: (Song) -> Unit = {}
 ) {
     var searchText by remember { mutableStateOf("") }
     val displayItems = remember { mutableStateListOf<RecentSearchItem>().apply { addAll(recentSearchItems) } }
+
+    // 搜索结果
+    val searchResults = remember(searchText) {
+        if (searchText.isBlank()) emptyList()
+        else allSongs.filter { it.title.contains(searchText, ignoreCase = true) || it.artistName.contains(searchText, ignoreCase = true) }
+    }
 
     Column(
         modifier = Modifier
@@ -69,6 +80,17 @@ fun SearchForSomethingTabView(
                         tint = Color.Gray
                     )
                 },
+                trailingIcon = {
+                    if (searchText.isNotEmpty()) {
+                        IconButton(onClick = { searchText = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF282828),
                     unfocusedContainerColor = Color(0xFF282828),
@@ -94,33 +116,111 @@ fun SearchForSomethingTabView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // "Recent searches" 标题
-        Text(
-            text = "Recent searches",
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp)
+        if (searchText.isNotBlank()) {
+            // 搜索结果显示
+            Text(
+                text = "Search results",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (searchResults.isEmpty()) {
+                Text(
+                    text = "No results found for \"$searchText\"",
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            } else {
+                LazyColumn {
+                    items(searchResults) { song ->
+                        SearchResultSongRow(
+                            song = song,
+                            onClick = { onSongClick(song) }
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(100.dp))
+                    }
+                }
+            }
+        } else {
+            // "Recent searches" 标题
+            Text(
+                text = "Recent searches",
+                color = Color.White,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 最近搜索列表
+            LazyColumn {
+                items(
+                    items = displayItems,
+                    key = { it.id }
+                ) { item ->
+                    RecentSearchRow(
+                        item = item,
+                        onRemove = { displayItems.remove(item) }
+                    )
+                }
+
+                // 底部间距
+                item {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 搜索结果歌曲行
+ */
+@Composable
+private fun SearchResultSongRow(
+    song: Song,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AssetImage(
+            assetPath = AssetMapper.songCover(song),
+            contentDescription = song.title,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(4.dp))
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
-        // 最近搜索列表
-        LazyColumn {
-            items(
-                items = displayItems,
-                key = { it.id }
-            ) { item ->
-                RecentSearchRow(
-                    item = item,
-                    onRemove = { displayItems.remove(item) }
-                )
-            }
-
-            // 底部间距
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
-            }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = song.title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "Song · ${song.artistName}",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
         }
     }
 }

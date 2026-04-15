@@ -43,7 +43,9 @@ fun HomeTabView(
     onAlbumClick: (Album) -> Unit = {},
     onSongMenuClick: (Song) -> Unit = {},
     likedSongIds: List<String> = emptyList(),
-    onToggleLike: (Song) -> Unit = {}
+    onToggleLike: (Song) -> Unit = {},
+    savedPodcastIds: MutableList<String> = mutableListOf(),
+    savedAudiobookIds: MutableList<String> = mutableListOf()
 ) {
     var showUserTab by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("All") }
@@ -63,7 +65,15 @@ fun HomeTabView(
     if (showPodcastDetail && selectedPodcast != null) {
         PodcastDetailView(
             podcastItem = selectedPodcast!!,
-            onBack = { showPodcastDetail = false; selectedPodcast = null }
+            onBack = { showPodcastDetail = false; selectedPodcast = null },
+            isSaved = savedPodcastIds.contains(selectedPodcast!!.title),
+            onToggleSave = {
+                if (savedPodcastIds.contains(selectedPodcast!!.title)) {
+                    savedPodcastIds.remove(selectedPodcast!!.title)
+                } else {
+                    savedPodcastIds.add(selectedPodcast!!.title)
+                }
+            }
         )
         return
     }
@@ -72,7 +82,15 @@ fun HomeTabView(
     if (showAudiobookDetail && selectedAudiobook != null) {
         AudiobookDetailView(
             audiobookItem = selectedAudiobook!!,
-            onBack = { showAudiobookDetail = false; selectedAudiobook = null }
+            onBack = { showAudiobookDetail = false; selectedAudiobook = null },
+            isSaved = savedAudiobookIds.contains(selectedAudiobook!!.title),
+            onToggleSave = {
+                if (savedAudiobookIds.contains(selectedAudiobook!!.title)) {
+                    savedAudiobookIds.remove(selectedAudiobook!!.title)
+                } else {
+                    savedAudiobookIds.add(selectedAudiobook!!.title)
+                }
+            }
         )
         return
     }

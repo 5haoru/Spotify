@@ -35,7 +35,8 @@ private val podcasts = listOf(
  */
 @Composable
 fun AddPodcastsTabView(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    savedPodcastIds: MutableList<String> = mutableListOf()
 ) {
     var searchText by remember { mutableStateOf("") }
 
@@ -113,7 +114,17 @@ fun AddPodcastsTabView(
         // 播客列表
         LazyColumn {
             items(podcasts) { podcast ->
-                PodcastListItem(podcast = podcast)
+                PodcastListItem(
+                    podcast = podcast,
+                    isFollowed = savedPodcastIds.contains(podcast.name),
+                    onFollowToggle = {
+                        if (savedPodcastIds.contains(podcast.name)) {
+                            savedPodcastIds.remove(podcast.name)
+                        } else {
+                            savedPodcastIds.add(podcast.name)
+                        }
+                    }
+                )
             }
 
             item {
@@ -127,9 +138,11 @@ fun AddPodcastsTabView(
  * 播客列表项（带 Follow 按钮）
  */
 @Composable
-private fun PodcastListItem(podcast: PodcastItem) {
-    var isFollowed by remember { mutableStateOf(false) }
-
+private fun PodcastListItem(
+    podcast: PodcastItem,
+    isFollowed: Boolean = false,
+    onFollowToggle: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -166,7 +179,7 @@ private fun PodcastListItem(podcast: PodcastItem) {
 
         // Follow 按钮
         OutlinedButton(
-            onClick = { isFollowed = !isFollowed },
+            onClick = onFollowToggle,
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = if (isFollowed) Color(0xFF1DB954) else Color.Transparent,

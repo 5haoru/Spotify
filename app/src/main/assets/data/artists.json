@@ -33,5 +33,12 @@
     "avatarUrl": "https://placeholder.com/artist/drake.jpg",
     "bio": "Canadian rapper and singer",
     "genres": ["Hip Hop", "R&B"]
+  },
+  {
+    "id": "artist_006",
+    "name": "Kenshi Yonezu",
+    "avatarUrl": "https://placeholder.com/artist/kenshi_yonezu.jpg",
+    "bio": "Japanese musician, singer-songwriter",
+    "genres": ["Pop", "Rock"]
   }
 ]

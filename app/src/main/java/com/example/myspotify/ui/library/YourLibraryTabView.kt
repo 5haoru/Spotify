@@ -25,6 +25,7 @@ import com.example.myspotify.model.Artist
 import com.example.myspotify.model.Playlist
 import com.example.myspotify.model.Song
 import com.example.myspotify.ui.common.AssetImage
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * YourLibraryTab View - 音乐库页面视图
@@ -41,7 +42,11 @@ fun YourLibraryTabView(
     onSongMenuClick: (Song) -> Unit = {},
     likedSongIds: List<String> = emptyList(),
     onToggleLike: (Song) -> Unit = {},
-    userPlaylists: MutableList<Playlist> = mutableListOf()
+    userPlaylists: MutableList<Playlist> = mutableListOf(),
+    followedArtistIds: MutableList<String> = mutableListOf(),
+    onToggleFollow: (Artist) -> Unit = {},
+    savedPodcastIds: MutableList<String> = mutableListOf(),
+    savedAudiobookIds: List<String> = emptyList()
 ) {
     // 子页面导航状态
     var showCreateTab by remember { mutableStateOf(false) }
@@ -133,7 +138,9 @@ fun YourLibraryTabView(
             onSongClick = onSongClick,
             onSongMenuClick = onSongMenuClick,
             likedSongIds = likedSongIds,
-            onToggleLike = onToggleLike
+            onToggleLike = onToggleLike,
+            isFollowed = followedArtistIds.contains(artist.id),
+            onToggleFollow = { onToggleFollow(artist) }
         )
         return
     }
@@ -143,7 +150,9 @@ fun YourLibraryTabView(
         AddArtistsTabView(
             allArtists = artists,
             followedArtists = followedArtists,
-            onBack = { showAddArtistsTab = false }
+            onBack = { showAddArtistsTab = false },
+            followedArtistIds = followedArtistIds,
+            onToggleFollow = onToggleFollow
         )
         return
     }
@@ -156,7 +165,10 @@ fun YourLibraryTabView(
 
     // 子页面：添加播客
     if (showAddPodcastsTab) {
-        AddPodcastsTabView(onBack = { showAddPodcastsTab = false })
+        AddPodcastsTabView(
+            onBack = { showAddPodcastsTab = false },
+            savedPodcastIds = savedPodcastIds
+        )
         return
     }
 
@@ -417,8 +429,30 @@ fun YourLibraryTabView(
                     )
                 }
 
-                // 艺术家列表（可点击进入详情）
-                items(artists) { artist ->
+                // 已收藏的播客
+                if (savedPodcastIds.isNotEmpty()) {
+                    items(savedPodcastIds) { podcastTitle ->
+                        SavedMediaItem(
+                            title = podcastTitle,
+                            type = "Podcast",
+                            icon = Icons.Default.Podcasts
+                        )
+                    }
+                }
+
+                // 已收藏的有声书
+                if (savedAudiobookIds.isNotEmpty()) {
+                    items(savedAudiobookIds) { audiobookTitle ->
+                        SavedMediaItem(
+                            title = audiobookTitle,
+                            type = "Audiobook",
+                            icon = Icons.Default.Book
+                        )
+                    }
+                }
+
+                // 艺术家列表（只显示已关注的艺术家，可点击进入详情）
+                items(followedArtists) { artist ->
                     ArtistItem(
                         artist = artist,
                         onClick = {
@@ -618,6 +652,49 @@ fun ArtistItem(artist: Artist, onClick: () -> Unit = {}) {
             )
             Text(
                 text = "Artist",
+                color = Color.Gray,
+                fontSize = 14.sp
+            )
+        }
+    }
+}
+
+/**
+ * 已收藏的播客/有声书项
+ */
+@Composable
+fun SavedMediaItem(title: String, type: String, icon: ImageVector) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFF282828)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = type,
+                tint = Color(0xFF1DB954)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = type,
                 color = Color.Gray,
                 fontSize = 14.sp
             )

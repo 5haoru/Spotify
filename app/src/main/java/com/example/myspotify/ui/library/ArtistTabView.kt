@@ -41,7 +41,9 @@ fun ArtistTabView(
     onSongClick: (Song) -> Unit = {},
     onSongMenuClick: (Song) -> Unit = {},
     likedSongIds: List<String> = emptyList(),
-    onToggleLike: (Song) -> Unit = {}
+    onToggleLike: (Song) -> Unit = {},
+    isFollowed: Boolean = false,
+    onToggleFollow: () -> Unit = {}
 ) {
     // 根据 artist id 生成一个稳定的 "monthly listeners" 数字
     val monthlyListeners = remember(artist.id) {
@@ -101,6 +103,29 @@ fun ArtistTabView(
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Follow / Following 按钮
+                OutlinedButton(
+                    onClick = onToggleFollow,
+                    modifier = Modifier.height(36.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (isFollowed) Color(0xFF1DB954) else Color.White
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = if (isFollowed) Color.Transparent else Color.Transparent
+                    )
+                ) {
+                    Text(
+                        text = if (isFollowed) "Following" else "Follow",
+                        color = if (isFollowed) Color(0xFF1DB954) else Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

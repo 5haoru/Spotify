@@ -27,7 +27,9 @@ import com.example.myspotify.ui.common.AssetImage
 @Composable
 fun AudiobookDetailView(
     audiobookItem: AudiobookFeedItem,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isSaved: Boolean = false,
+    onToggleSave: () -> Unit = {}
 ) {
     var progress by remember { mutableFloatStateOf(0f) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -163,6 +165,18 @@ fun AudiobookDetailView(
                     contentDescription = "Forward",
                     tint = Color.White,
                     modifier = Modifier.size(32.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            // 收藏按钮
+            IconButton(onClick = onToggleSave) {
+                Icon(
+                    imageVector = if (isSaved) Icons.Default.Check else Icons.Default.Add,
+                    contentDescription = if (isSaved) "Saved" else "Save",
+                    tint = if (isSaved) Color(0xFF1DB954) else Color.White,
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }

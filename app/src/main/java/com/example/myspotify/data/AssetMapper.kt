@@ -34,7 +34,8 @@ object AssetMapper {
         "artist_002" to "avatar/2.png",
         "artist_003" to "avatar/3.png",
         "artist_004" to "avatar/4.png",
-        "artist_005" to "avatar/5.png"
+        "artist_005" to "avatar/5.png",
+        "artist_006" to "avatar/7.png"
     )
 
     fun albumCover(albumId: String): String =
@@ -58,7 +59,8 @@ object AssetMapper {
         "song_009" to "cover/9.png",
         "song_010" to "cover/8.png",
         "song_011" to "cover/13.png",
-        "song_012" to "cover/5.png"
+        "song_012" to "cover/5.png",
+        "song_013" to "cover/13.png"
     )
 
     fun songCover(song: Song): String =

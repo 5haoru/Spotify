@@ -16,12 +16,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myspotify.model.Song
 
 /**
- * LyricsTab View - 全屏歌词页面（点击歌词预览卡片进入）
+ * LyricsTab View - 全屏歌词页面
  */
 @Composable
-fun LyricsTabView(onBack: () -> Unit) {
+fun LyricsTabView(song: Song? = null, onBack: () -> Unit) {
+    val songTitle = song?.title ?: "IRIS OUT"
+    val songArtist = song?.artistName ?: "Kenshi Yonezu"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,13 +57,13 @@ fun LyricsTabView(onBack: () -> Unit) {
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "IRIS OUT",
+                    text = songTitle,
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "Kenshi Yonezu",
+                    text = songArtist,
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )

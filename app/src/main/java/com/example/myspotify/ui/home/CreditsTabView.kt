@@ -14,12 +14,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myspotify.model.Song
 
 /**
  * CreditsTab View - 歌曲制作人员名单页面
  */
 @Composable
-fun CreditsTabView(onBack: () -> Unit) {
+fun CreditsTabView(song: Song? = null, onBack: () -> Unit) {
+    val songTitle = song?.title ?: "IRIS OUT"
+    val songArtist = song?.artistName ?: "Kenshi Yonezu"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,13 +65,13 @@ fun CreditsTabView(onBack: () -> Unit) {
 
             // 歌曲信息
             Text(
-                text = "IRIS OUT",
+                text = songTitle,
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Kenshi Yonezu",
+                text = songArtist,
                 color = Color.Gray,
                 fontSize = 16.sp
             )
@@ -75,15 +79,15 @@ fun CreditsTabView(onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(32.dp))
 
             // Credits 列表
-            CreditsItem(name = "Kenshi Yonezu", role = "Performed by")
-            CreditsItem(name = "Kenshi Yonezu", role = "Written by")
-            CreditsItem(name = "Kenshi Yonezu, Taro Yamada", role = "Produced by")
+            CreditsItem(name = songArtist, role = "Performed by")
+            CreditsItem(name = songArtist, role = "Written by")
+            CreditsItem(name = "$songArtist, Taro Yamada", role = "Produced by")
             CreditsItem(name = "Jiro Suzuki", role = "Mixing Engineer")
             CreditsItem(name = "Saburo Tanaka", role = "Mastering Engineer")
-            CreditsItem(name = "Kenshi Yonezu", role = "Guitar")
+            CreditsItem(name = songArtist, role = "Guitar")
             CreditsItem(name = "Shiro Sato", role = "Bass")
             CreditsItem(name = "Goro Watanabe", role = "Drums")
-            CreditsItem(name = "Kenshi Yonezu", role = "Vocals")
+            CreditsItem(name = songArtist, role = "Vocals")
             CreditsItem(name = "Sony Music Labels", role = "Label")
 
             Spacer(modifier = Modifier.height(32.dp))

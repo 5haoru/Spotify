@@ -26,6 +26,7 @@ import com.example.myspotify.model.Song
 import com.example.myspotify.ui.common.AssetImage
 import com.example.myspotify.ui.common.SelectPlaylistView
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 // Repeat mode: OFF -> ALL -> ONE
 enum class RepeatMode { OFF, ALL, ONE }
@@ -42,7 +43,9 @@ fun PlayingTabView(
     userPlaylists: List<Playlist> = emptyList(),
     likedSongsCount: Int = 0,
     onAddSongToPlaylist: (Song, Playlist) -> Unit = { _, _ -> },
-    onAddSongToLikedSongs: (Song) -> Unit = {}
+    onAddSongToLikedSongs: (Song) -> Unit = {},
+    onPrevious: () -> Unit = {},
+    onNext: () -> Unit = {}
 ) {
     val songTitle = song?.title ?: "IRIS OUT"
     val songArtist = song?.artistName ?: "Kenshi Yonezu"
@@ -125,15 +128,15 @@ fun PlayingTabView(
         return
     }
     if (showLyricsTab) {
-        LyricsTabView(onBack = { showLyricsTab = false })
+        LyricsTabView(song = song, onBack = { showLyricsTab = false })
         return
     }
     if (showCreditsTab) {
-        CreditsTabView(onBack = { showCreditsTab = false })
+        CreditsTabView(song = song, onBack = { showCreditsTab = false })
         return
     }
     if (showAboutArtistTab) {
-        AboutTheArtistTabView(onBack = { showAboutArtistTab = false })
+        AboutTheArtistTabView(song = song, onBack = { showAboutArtistTab = false })
         return
     }
 
@@ -198,7 +201,9 @@ fun PlayingTabView(
                     RepeatMode.ALL -> RepeatMode.ONE
                     RepeatMode.ONE -> RepeatMode.OFF
                 }
-            }
+            },
+            onPrevious = onPrevious,
+            onNext = onNext
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -214,12 +219,12 @@ fun PlayingTabView(
         Spacer(modifier = Modifier.height(16.dp))
 
         // About the artist card
-        AboutArtistCard(onShowMore = { showAboutArtistTab = true })
+        AboutArtistCard(song = song, onShowMore = { showAboutArtistTab = true })
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Credits card
-        CreditsCard(onShowAllCredits = { showCreditsTab = true })
+        CreditsCard(song = song, onShowAllCredits = { showCreditsTab = true })
 
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -334,7 +339,9 @@ private fun PlaybackControls(
     isShuffle: Boolean,
     onShuffleToggle: () -> Unit,
     repeatMode: RepeatMode,
-    onRepeatCycle: () -> Unit
+    onRepeatCycle: () -> Unit,
+    onPrevious: () -> Unit = {},
+    onNext: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -352,7 +359,7 @@ private fun PlaybackControls(
         }
 
         // 上一首
-        IconButton(onClick = {}) {
+        IconButton(onClick = onPrevious) {
             Icon(
                 imageVector = Icons.Default.SkipPrevious,
                 contentDescription = "Previous",
@@ -378,7 +385,7 @@ private fun PlaybackControls(
         }
 
         // 下一首
-        IconButton(onClick = {}) {
+        IconButton(onClick = onNext) {
             Icon(
                 imageVector = Icons.Default.SkipNext,
                 contentDescription = "Next",
@@ -501,7 +508,25 @@ private fun LyricsPreviewCard(onShowMore: () -> Unit) {
  * About the artist 卡��
  */
 @Composable
-private fun AboutArtistCard(onShowMore: () -> Unit) {
+private fun AboutArtistCard(song: Song? = null, onShowMore: () -> Unit) {
+    val artistName = song?.artistName ?: "Kenshi Yonezu"
+    val artistId = song?.artistId ?: "artist_005"
+    val artistAvatar = AssetMapper.artistAvatar(artistId)
+    val monthlyListeners = remember(artistId) {
+        val hash = abs(artistId.hashCode())
+        val base = (hash % 50 + 10) / 10.0
+        "${base}M"
+    }
+    val artistBio = remember(artistName) {
+        when (artistName) {
+            "Taylor Swift" -> "Taylor Swift is an American singer-songwriter who has become one of the most influential music artists of the 21st century. Known for her storytelling ability and genre-spanning music."
+            "Ed Sheeran" -> "Ed Sheeran is an English singer-songwriter and musician known for his heartfelt lyrics and acoustic-driven sound. His breakthrough came with his debut album \"+\" in 2011."
+            "The Weeknd" -> "The Weeknd is a Canadian singer, songwriter, and record producer known for his distinctive vocal style and dark R&B sound."
+            "Drake" -> "Drake is a Canadian rapper, singer, songwriter, and actor who has become one of the most commercially successful artists in music history."
+            else -> "Kenshi Yonezu is a Japanese musician, singer-songwriter, and producer. Known for his unique blend of pop and rock, he has captivated audiences worldwide with his distinctive musical style and creative vision."
+        }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -510,7 +535,7 @@ private fun AboutArtistCard(onShowMore: () -> Unit) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // 艺术家大图
             AssetImage(
-                assetPath = "avatar/7.png",
+                assetPath = artistAvatar,
                 contentDescription = "Artist",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -527,7 +552,7 @@ private fun AboutArtistCard(onShowMore: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Kenshi Yonezu",
+                        text = artistName,
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -535,13 +560,13 @@ private fun AboutArtistCard(onShowMore: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "5.2M monthly listeners",
+                    text = "$monthlyListeners monthly listeners",
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Kenshi Yonezu is a Japanese musician, singer-songwriter, and producer. Known for his unique blend of pop and rock, he has captivated audiences worldwide with his distinctive musical style and creative vision.",
+                    text = artistBio,
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp,
                     maxLines = 3,
@@ -564,7 +589,9 @@ private fun AboutArtistCard(onShowMore: () -> Unit) {
  * Credits 卡片
  */
 @Composable
-private fun CreditsCard(onShowAllCredits: () -> Unit) {
+private fun CreditsCard(song: Song? = null, onShowAllCredits: () -> Unit) {
+    val artistName = song?.artistName ?: "Kenshi Yonezu"
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -578,11 +605,11 @@ private fun CreditsCard(onShowAllCredits: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(16.dp))
-            CreditItem(role = "Performed by", name = "Kenshi Yonezu")
+            CreditItem(role = "Performed by", name = artistName)
             Spacer(modifier = Modifier.height(12.dp))
-            CreditItem(role = "Written by", name = "Kenshi Yonezu")
+            CreditItem(role = "Written by", name = artistName)
             Spacer(modifier = Modifier.height(12.dp))
-            CreditItem(role = "Produced by", name = "Kenshi Yonezu")
+            CreditItem(role = "Produced by", name = artistName)
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Show all credits",

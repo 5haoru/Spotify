@@ -35,7 +35,8 @@ fun SearchTabView(
     albums: List<Album>,
     playlists: List<Playlist>,
     recentlyPlayedSongs: List<Song>,
-    followedArtists: List<Artist>
+    followedArtists: List<Artist>,
+    onSongClick: (Song) -> Unit = {}
 ) {
     // 导航状态
     var showSearchForSomething by remember { mutableStateOf(false) }
@@ -74,7 +75,9 @@ fun SearchTabView(
     if (showSearchForSomething) {
         SearchForSomethingTabView(
             recentSearchItems = recentSearchItems,
-            onBack = { showSearchForSomething = false }
+            allSongs = songs,
+            onBack = { showSearchForSomething = false },
+            onSongClick = onSongClick
         )
         return
     }

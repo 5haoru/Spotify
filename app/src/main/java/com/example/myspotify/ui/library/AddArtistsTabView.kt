@@ -30,13 +30,14 @@ import com.example.myspotify.ui.common.AssetImage
 fun AddArtistsTabView(
     allArtists: List<Artist>,
     followedArtists: List<Artist>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    followedArtistIds: MutableList<String> = mutableListOf(),
+    onToggleFollow: (Artist) -> Unit = {}
 ) {
     var searchText by remember { mutableStateOf("") }
-    val followedIds = remember(followedArtists) { followedArtists.map { it.id }.toSet() }
-    val suggestedArtists = remember(allArtists, followedIds) {
-        allArtists.filter { it.id !in followedIds }
-    }
+
+    // 显示所有非已关注的艺人 + 刚刚在本页面关注的艺人
+    val initialNotFollowed = remember { allArtists.filter { it.id !in followedArtistIds } }
 
     Column(
         modifier = Modifier
@@ -111,8 +112,12 @@ fun AddArtistsTabView(
 
         // 推荐艺术家列表
         LazyColumn {
-            items(suggestedArtists) { artist ->
-                SuggestedArtistItem(artist = artist)
+            items(initialNotFollowed) { artist ->
+                SuggestedArtistItem(
+                    artist = artist,
+                    isFollowed = followedArtistIds.contains(artist.id),
+                    onFollowToggle = { onToggleFollow(artist) }
+                )
             }
 
             item {
@@ -126,9 +131,11 @@ fun AddArtistsTabView(
  * 推荐艺术家项（带 Follow 按钮）
  */
 @Composable
-private fun SuggestedArtistItem(artist: Artist) {
-    var isFollowed by remember { mutableStateOf(false) }
-
+private fun SuggestedArtistItem(
+    artist: Artist,
+    isFollowed: Boolean = false,
+    onFollowToggle: () -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,7 +170,7 @@ private fun SuggestedArtistItem(artist: Artist) {
 
         // Follow 按钮
         OutlinedButton(
-            onClick = { isFollowed = !isFollowed },
+            onClick = onFollowToggle,
             shape = RoundedCornerShape(20.dp),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = if (isFollowed) Color(0xFF1DB954) else Color.Transparent,

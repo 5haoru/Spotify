@@ -41,7 +41,9 @@ data class Comment(
 @Composable
 fun PodcastDetailView(
     podcastItem: PodcastFeedItem,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isSaved: Boolean = false,
+    onToggleSave: () -> Unit = {}
 ) {
     // 进度条状态
     var progress by remember { mutableFloatStateOf(0.3f) }
@@ -186,6 +188,18 @@ fun PodcastDetailView(
                             contentDescription = "Forward 15s",
                             tint = Color.White,
                             modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(24.dp))
+
+                    // 收藏按钮
+                    IconButton(onClick = onToggleSave) {
+                        Icon(
+                            imageVector = if (isSaved) Icons.Default.Check else Icons.Default.Add,
+                            contentDescription = if (isSaved) "Saved" else "Save",
+                            tint = if (isSaved) Color(0xFF1DB954) else Color.White,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }

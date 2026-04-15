@@ -18,8 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.myspotify.data.AssetMapper
+import com.example.myspotify.data.AutoTestExporter
 import com.example.myspotify.data.DataManager
 import com.example.myspotify.model.Album
+import com.example.myspotify.model.Artist
 import com.example.myspotify.model.Playlist
 import com.example.myspotify.model.Song
 import com.example.myspotify.ui.common.AssetImage
@@ -38,17 +40,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MySpotifyTheme {
-                MainScreen(dataManager = DataManager(this))
+                MainScreen(
+                    dataManager = DataManager(this),
+                    autoTestExporter = AutoTestExporter(this)
+                )
             }
         }
     }
 }
 
 @Composable
-fun MainScreen(dataManager: DataManager) {
+fun MainScreen(dataManager: DataManager, autoTestExporter: AutoTestExporter) {
     var selectedTab by remember { mutableStateOf(0) }
     var showPlayingTab by remember { mutableStateOf(false) }
-    var selectedSong by remember { mutableStateOf<Song?>(null) }
     var showPlaylistDetail by remember { mutableStateOf(false) }
     var selectedPlaylist by remember { mutableStateOf<Playlist?>(null) }
     var showAlbumDetail by remember { mutableStateOf(false) }
@@ -58,22 +62,64 @@ fun MainScreen(dataManager: DataManager) {
     var showMusicMenu by remember { mutableStateOf(false) }
     var menuSong by remember { mutableStateOf<Song?>(null) }
     val userPlaylists = remember { mutableStateListOf<Playlist>() }
+    val savedPodcastIds = remember { mutableStateListOf<String>() }
+    val savedAudiobookIds = remember { mutableStateListOf<String>() }
 
     val songs = remember { dataManager.getSongs() }
+    val defaultSong = remember { dataManager.getSongById("song_013") }
+    var selectedSong by remember { mutableStateOf(defaultSong) }
     val artists = remember { dataManager.getArtists() }
     val albums = remember { dataManager.getAlbums() }
     val playlists = remember { dataManager.getPlaylists() }
     val recentlyPlayedSongs = remember {
         dataManager.getUserData().recentlyPlayed.mapNotNull { dataManager.getSongById(it) }
     }
-    val followedArtists = remember {
-        dataManager.getUserData().followedArtists.mapNotNull { dataManager.getArtistById(it) }
+    val followedArtistIds = remember {
+        mutableStateListOf<String>().apply { addAll(dataManager.getUserData().followedArtists) }
+    }
+    val followedArtists by remember {
+        derivedStateOf { followedArtistIds.mapNotNull { dataManager.getArtistById(it) } }
+    }
+
+    // 关注/取消关注艺术家
+    val onToggleFollow: (Artist) -> Unit = { artist ->
+        if (followedArtistIds.contains(artist.id)) {
+            followedArtistIds.remove(artist.id)
+        } else {
+            followedArtistIds.add(artist.id)
+        }
     }
     val likedSongIds = remember {
         mutableStateListOf<String>().apply { addAll(dataManager.getUserData().likedSongs) }
     }
     val likedSongs by remember {
         derivedStateOf { likedSongIds.mapNotNull { dataManager.getSongById(it) } }
+    }
+
+    // AutoTest: 导出状态的辅助函数
+    val exportState = {
+        autoTestExporter.exportUserState(
+            likedSongIds = likedSongIds.toList(),
+            followedArtistIds = followedArtistIds.toList(),
+            savedPodcastIds = savedPodcastIds.toList(),
+            savedAudiobookIds = savedAudiobookIds.toList(),
+            savedPlaylistIds = userPlaylists.map { it.id }
+        )
+        autoTestExporter.exportUserPlaylists(userPlaylists.toList())
+        autoTestExporter.exportPlaybackState(
+            currentSongId = selectedSong?.id,
+            isPlaying = false,
+            playMode = "SEQUENTIAL",
+            shuffleEnabled = false
+        )
+    }
+
+    // AutoTest: 状态变化时自动导出
+    // 使用 hashCode 作为 key 来检测 userPlaylists 内容变化（包括 songIds 变更）
+    val playlistsHash = userPlaylists.sumOf { it.songIds.size * 31 + it.hashCode() }
+    LaunchedEffect(likedSongIds.size, followedArtistIds.size, playlistsHash,
+        savedPodcastIds.size, savedAudiobookIds.size, selectedSong?.id) {
+        exportState()
     }
 
     // 收藏/取消收藏歌曲
@@ -151,6 +197,22 @@ fun MainScreen(dataManager: DataManager) {
             onAddSongToLikedSongs = { s ->
                 if (!likedSongIds.contains(s.id)) {
                     likedSongIds.add(s.id)
+                }
+            },
+            onPrevious = {
+                val currentIndex = songs.indexOfFirst { it.id == selectedSong?.id }
+                if (currentIndex > 0) {
+                    selectedSong = songs[currentIndex - 1]
+                } else if (songs.isNotEmpty()) {
+                    selectedSong = songs.last()
+                }
+            },
+            onNext = {
+                val currentIndex = songs.indexOfFirst { it.id == selectedSong?.id }
+                if (currentIndex >= 0 && currentIndex < songs.size - 1) {
+                    selectedSong = songs[currentIndex + 1]
+                } else if (songs.isNotEmpty()) {
+                    selectedSong = songs.first()
                 }
             }
         )
@@ -233,7 +295,9 @@ fun MainScreen(dataManager: DataManager) {
                     onAlbumClick = onAlbumClick,
                     onSongMenuClick = onSongMenuClick,
                     likedSongIds = likedSongIds,
-                    onToggleLike = onToggleLike
+                    onToggleLike = onToggleLike,
+                    savedPodcastIds = savedPodcastIds,
+                    savedAudiobookIds = savedAudiobookIds
                 )
                 1 -> SearchTabView(
                     songs = songs,
@@ -241,7 +305,8 @@ fun MainScreen(dataManager: DataManager) {
                     albums = albums,
                     playlists = playlists,
                     recentlyPlayedSongs = recentlyPlayedSongs,
-                    followedArtists = followedArtists
+                    followedArtists = followedArtists,
+                    onSongClick = onSongClick
                 )
                 2 -> YourLibraryTabView(
                     artists = artists,
@@ -253,7 +318,11 @@ fun MainScreen(dataManager: DataManager) {
                     onSongMenuClick = onSongMenuClick,
                     likedSongIds = likedSongIds,
                     onToggleLike = onToggleLike,
-                    userPlaylists = userPlaylists
+                    userPlaylists = userPlaylists,
+                    followedArtistIds = followedArtistIds,
+                    onToggleFollow = onToggleFollow,
+                    savedPodcastIds = savedPodcastIds,
+                    savedAudiobookIds = savedAudiobookIds
                 )
                 3 -> PremiumTabView()
             }
